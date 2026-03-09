@@ -13,3 +13,9 @@ async-trait.workspace = true
 tokio.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
+tonic.workspace = true
+prost.workspace = true
+
+[build-dependencies]
+tonic-build.workspace = true
+protobuf-src = "2"

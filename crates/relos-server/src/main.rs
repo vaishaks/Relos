@@ -2,13 +2,20 @@ use std::sync::Arc;
 
 use relos_core::Result;
 use relos_engine::BaseEngine;
-use relos_log::{MemoryLoglet, MemoryMetaStore, VirtualLog, LogChain, LogletFactory, Loglet};
+use relos_log::{LogChain, Loglet, LogletFactory, MemoryLoglet, MemoryMetaStore, VirtualLog};
 use relos_store::MemoryStore;
 use relos_table::{DelosTable, TableApplicator};
 
 mod config;
+mod grpc_service;
+
+/// Generated protobuf / tonic types.
+mod proto {
+    tonic::include_proto!("relos");
+}
 
 use config::ServerConfig;
+use grpc_service::RelosTableService;
 
 #[tokio::main]
 async fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
@@ -17,7 +24,11 @@ async fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let config = ServerConfig::default();
     tracing::info!("Starting Relos server with config: {:?}", config);
 
-    // Build the stack: LocalStore → VirtualLog → BaseEngine → DelosTable
+    // Check if --demo flag was passed
+    let args: Vec<String> = std::env::args().collect();
+    let demo_mode = args.iter().any(|a| a == "--demo");
+
+    // Build the stack: MemoryStore -> VirtualLog -> BaseEngine -> DelosTable
     let store = Arc::new(MemoryStore::new());
 
     let initial_chain = LogChain::new("memory-0".to_string());
@@ -28,12 +39,22 @@ async fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let applicator = Arc::new(TableApplicator::new());
     let engine = BaseEngine::new(virtual_log, store.clone(), applicator).await?;
 
-    let table = DelosTable::new(engine, store);
+    let table = Arc::new(DelosTable::new(engine, store));
 
-    tracing::info!("Relos server ready");
+    if demo_mode {
+        tracing::info!("Running in demo mode");
+        demo(&table).await?;
+    } else {
+        // Start gRPC server
+        let addr = config.grpc_addr().parse()?;
+        tracing::info!("Relos gRPC server listening on {}", addr);
 
-    // For now, run a simple demo
-    demo(&table).await?;
+        let svc = RelosTableService::new(table);
+        tonic::transport::Server::builder()
+            .add_service(proto::relos_table_server::RelosTableServer::new(svc))
+            .serve(addr)
+            .await?;
+    }
 
     Ok(())
 }
@@ -48,7 +69,7 @@ impl LogletFactory for MemoryLogletFactory {
 }
 
 async fn demo(table: &DelosTable) -> Result<()> {
-    use relos_table::{TableSchema, ColumnDef, ColumnType, Row, Value};
+    use relos_table::{ColumnDef, ColumnType, Row, TableSchema, Value};
 
     // Create a table
     let schema = TableSchema {

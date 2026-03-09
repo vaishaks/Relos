@@ -7,6 +7,7 @@ members = [
     "crates/relos-engine",
     "crates/relos-table",
     "crates/relos-server",
+    "crates/relos-client",
 ]
 
 [workspace.dependencies]
@@ -18,3 +19,6 @@ thiserror = "2"
 tracing = "0.1"
 tracing-subscriber = "0.3"
 bytes = "1"
+tonic = "0.12"
+prost = "0.13"
+tonic-build = "0.12"
