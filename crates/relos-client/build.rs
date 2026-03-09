@@ -1,4 +1,9 @@
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tonic_build::compile_protos("../../proto/relos.proto")?;
+    std::env::set_var("PROTOC", protobuf_src::protoc());
+
+    tonic_build::configure()
+        .build_server(false)
+        .build_client(true)
+        .compile_protos(&["../../proto/relos.proto"], &["../../proto"])?;
     Ok(())
 }
