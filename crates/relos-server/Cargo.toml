@@ -1,0 +1,15 @@
+[package]
+name = "relos-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+relos-core = { path = "../relos-core" }
+relos-store = { path = "../relos-store" }
+relos-log = { path = "../relos-log" }
+relos-engine = { path = "../relos-engine" }
+relos-table = { path = "../relos-table" }
+async-trait.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true

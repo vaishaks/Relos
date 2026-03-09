@@ -1,0 +1,15 @@
+[package]
+name = "relos-table"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+relos-core = { path = "../relos-core" }
+relos-store = { path = "../relos-store" }
+relos-engine = { path = "../relos-engine" }
+async-trait.workspace = true
+tokio.workspace = true
+serde.workspace = true
+bincode.workspace = true
+tracing.workspace = true
+hex = "0.4"

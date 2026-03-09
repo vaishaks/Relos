@@ -1,0 +1,11 @@
+[package]
+name = "relos-log"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+relos-core = { path = "../relos-core" }
+async-trait.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+serde.workspace = true
